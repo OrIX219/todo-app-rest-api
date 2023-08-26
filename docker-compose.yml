@@ -1,0 +1,30 @@
+version: "3.9"
+
+services:
+  app:
+    container_name: 'todo-app'
+    build: .
+    ports:
+      - 8080:8080
+    command: make prod
+    env_file:
+      - .env
+    restart: always
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  postgres:
+    container_name: 'todo-app-db'
+    image: postgres
+    env_file:
+      - .env
+    ports:
+      - '${POSTGRES_PORT}:${POSTGRES_PORT}'
+    volumes:
+      - ./.database/postgres/data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
